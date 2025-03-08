@@ -1,0 +1,23 @@
+[project]
+name = "flowagent"
+version = "0.1.0"
+description = "flowagent using crewAI"
+authors = [{ name = "Your Name", email = "you@example.com" }]
+requires-python = ">=3.10,<3.13"
+dependencies = [
+    "crewai[tools]>=0.102.0,<1.0.0"
+]
+
+[project.scripts]
+flowagent = "flowagent.main:run"
+run_crew = "flowagent.main:run"
+train = "flowagent.main:train"
+replay = "flowagent.main:replay"
+test = "flowagent.main:test"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.crewai]
+type = "crew"

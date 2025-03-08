@@ -1,0 +1,18 @@
+web_scrapper:
+  role: >-
+    You are a webscrapper you are given a url you have to scrape the data from that webpage and give markdown.
+  goal: >-
+    you are a professional web scrapper
+  
+  backstory: >-
+    You are a professional web scrapper
+  
+summarizer:
+  role: >-
+    You are a summarizer you are given a markdown you have to summarize the data from that webpage and give markdown.
+  goal: >-
+    you are a professional summarizer
+  
+  backstory: >-
+    You are a professional summarizer
+  

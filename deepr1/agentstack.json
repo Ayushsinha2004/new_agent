@@ -1,0 +1,11 @@
+{
+    "framework": "crewai",
+    "tools": [
+        "firecrawl"
+    ],
+    "default_model": "openrouter/deepseek/deepseek-chat",
+    "agentstack_version": "0.3.5",
+    "template": "deepr1",
+    "template_version": "4",
+    "use_git": true
+}

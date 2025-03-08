@@ -1,0 +1,14 @@
+web_scrapper_task:
+  description: >-
+    scrape the page anf return the markdown
+  expected_output: >-
+    to give the markdown of the page
+  agent: >-
+    web_scrapper
+summarizer_task:
+  description: >-
+    Write a summary of the text and give points and takeaways
+  expected_output: >-
+    To give the summary, key points and takeaways of the text.
+  agent: >-
+    summarizer
