@@ -1,0 +1,584 @@
+{
+  "name": "Book table",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "0119b32c-b257-4bcb-a78c-a4016640b844",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "f703b458-798b-41f7-92c9-f505bbdd60ac",
+      "name": "Webhook",
+      "webhookId": "0119b32c-b257-4bcb-a78c-a4016640b844"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n    \"results\":[\n        {\n            \"toolCallId\":\"{{ $('Webhook').first().json.body.message.toolCalls[0].id }}\",\n            \"result\":\"the table has been reserved\"\n        }\n    ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        2020,
+        0
+      ],
+      "id": "0ce5bb31-ec45-4eab-a6ac-71ad5afc7301",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "base": {
+          "__rl": true,
+          "value": "appxtRRlb5NSZiaxQ",
+          "mode": "list",
+          "cachedResultName": "Restaurant_Management",
+          "cachedResultUrl": "https://airtable.com/appxtRRlb5NSZiaxQ"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblEfvAEJnuRjzKSR",
+          "mode": "list",
+          "cachedResultName": "Reservations",
+          "cachedResultUrl": "https://airtable.com/appxtRRlb5NSZiaxQ/tblEfvAEJnuRjzKSR"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Guests": "={{ $('Edit Fields').item.json.guests }}",
+            "Date": "={{ $('formattedDate').item.json.formattedDate }}",
+            "Table ID": "={{ $('suitableTables').item.json.table }}",
+            "Status": "Confirmed",
+            "Email": "={{ $('Edit Fields').item.json.email }}",
+            "Name": "={{ $('Edit Fields').item.json.name }}",
+            "Notes": "={{ $('Edit Fields').item.json.notes }}",
+            "Time": "={{ $json.requestedTime }}",
+            "Res ID": "=RES{{ Math.floor(Math.random() * 100000) }}"
+          },
+          "matchingColumns": [
+            "Res ID"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Res ID",
+              "displayName": "Res ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "2024-11-29",
+                  "value": "2024-11-29"
+                },
+                {
+                  "name": "2024-11-30",
+                  "value": "2024-11-30"
+                },
+                {
+                  "name": "2024-12-01",
+                  "value": "2024-12-01"
+                },
+                {
+                  "name": "2024-12-02",
+                  "value": "2024-12-02"
+                },
+                {
+                  "name": "2024-12-03",
+                  "value": "2024-12-03"
+                },
+                {
+                  "name": "2024-12-04",
+                  "value": "2024-12-04"
+                },
+                {
+                  "name": "2024-12-05",
+                  "value": "2024-12-05"
+                },
+                {
+                  "name": "2024-12-06",
+                  "value": "2024-12-06"
+                },
+                {
+                  "name": "2024-12-07",
+                  "value": "2024-12-07"
+                },
+                {
+                  "name": "2024-12-08",
+                  "value": "2024-12-08"
+                },
+                {
+                  "name": "2024-12-09",
+                  "value": "2024-12-09"
+                },
+                {
+                  "name": "2024-12-10",
+                  "value": "2024-12-10"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Time",
+              "displayName": "Time",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Table ID",
+              "displayName": "Table ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Guests",
+              "displayName": "Guests",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Confirmed",
+                  "value": "Confirmed"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Notes",
+              "displayName": "Notes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "updatedTime",
+              "displayName": "updatedTime",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Table_Availability",
+              "displayName": "Table_Availability",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "timeSlots",
+              "displayName": "timeSlots",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "table",
+              "displayName": "table",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Date (from timeSlots)",
+              "displayName": "Date (from timeSlots)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Time Slot (from timeSlots)",
+              "displayName": "Time Slot (from timeSlots)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1660,
+        0
+      ],
+      "id": "cc285bc5-55f2-43b7-bc2e-97c34a29778e",
+      "name": "Airtable",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "VJP4Pk80GRJLAQCT",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const guests = $input.first().json.guests\n\n// Get suitable tables based on party size\nfunction getSuitableTables(guests) {\n    if (guests <= 2) return ['T1', 'T2'];\n    if (guests <= 4) return ['T3', 'T4'];\n    if (guests <= 6) return ['T5'];\n    return [];\n}\n\nconst suitableTables = getSuitableTables(guests);\n\n\nreturn {json: {\n  table: suitableTables[0],\n}};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        0
+      ],
+      "id": "c0b4dab9-ae41-43ea-a703-37da742ab5ab",
+      "name": "suitableTables",
+      "notesInFlow": true,
+      "notes": "We get the suitable tables for a given number of guests\nand we create a filter to apply in the formula for airtables in the next node"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4529b69f-9edd-4558-989f-440cf5ade08d",
+              "name": "guests",
+              "value": "={{ $json.body.message.toolCalls[0].function.arguments.guests }}",
+              "type": "number"
+            },
+            {
+              "id": "6a105262-9cd4-403c-a6ed-28e1ee9dba0f",
+              "name": "name",
+              "value": "={{ $json.body.message.toolCalls[0].function.arguments.name }}",
+              "type": "string"
+            },
+            {
+              "id": "5c2f4e3c-f6b0-414a-8bf8-ed6c24c96846",
+              "name": "date",
+              "value": "={{ $json.body.message.toolCalls[0].function.arguments.date }}",
+              "type": "string"
+            },
+            {
+              "id": "697476d2-f635-4638-a578-a1b245d74a71",
+              "name": "notes",
+              "value": "={{ $json.body.message.toolCalls[0].function.arguments.notes }}",
+              "type": "string"
+            },
+            {
+              "id": "a9f9d8d6-a568-40bf-9aba-64276d03ee8f",
+              "name": "email",
+              "value": "={{ $json.body.message.toolCalls[0].function.arguments.email }}",
+              "type": "string"
+            },
+            {
+              "id": "38eac618-1267-42ba-bace-d5bc490404d7",
+              "name": "time",
+              "value": "={{ $json.body.message.toolCalls[0].function.arguments.time }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        300,
+        0
+      ],
+      "id": "22630b8a-9fbc-41c5-840f-dc63b705dc16",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a date parsing assistant. Today's date is {{$today}}. Your task is to convert natural language date expressions into YYYY-MM-DD format.\nRules:\n\nAlways output only the date in YYYY-MM-DD format\nIf the year isn't specified, assume the nearest future date\nFor \"next [day]\", select the next occurrence after the upcoming one\nFor relative dates (tomorrow, day after tomorrow), calculate from today's date\nFor numeric dates (e.g., \"15th\"), assume the nearest future occurrence\nFor month names, use the next occurrence if the day has passed\n\nInput examples and expected outputs (assuming today is {{$today}}):\n\n\"tomorrow\" → [calculate tomorrow's date]\n\"next monday\" → [calculate second monday from today]\n\"this friday\" → [calculate next friday]\n\"day after tomorrow\" → [calculate date after tomorrow]\n\"in 3 days\" → [calculate date 3 days from today]\n\"next week tuesday\" → [calculate next tuesday]\n\"december 25th\" → [calculate next December 25th]\n\"25/12\" → [calculate next December 25th]\n\"25th of next month\" → [calculate 25th of next month]\n\"first tuesday of next month\" → [calculate accordingly]\n\"end of this month\" → [calculate last day of current month]\n\"2024-12-25\" → 2024-12-25\n\nOnly respond with the date in YYYY-MM-DD format. No explanations or additional text.\nInput: {{ $('Edit Fields').item.json.date }}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {
+          "temperature": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.7,
+      "position": [
+        800,
+        0
+      ],
+      "id": "033c1fc4-eb9e-44d9-97d3-a8ca30733a98",
+      "name": "parse date",
+      "credentials": {
+        "openAiApi": {
+          "id": "6ujOoKflHHw1YrDR",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0637d1d3-5eaf-449b-8b0a-82db04f60609",
+              "name": "formattedDate",
+              "value": "={{ $json.message.content.date }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1180,
+        0
+      ],
+      "id": "677c567f-4f7f-4146-886d-6275d6331cc0",
+      "name": "formattedDate"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nfunction formatTime(timeStr) {\n  // Remove any spaces\n  timeStr = timeStr.toLowerCase().replace(/\\s/g, '');\n  \n  // Handle cases like \"7:30pm\", \"7pm\", \"19:30\", \"7\", \"7:30\"\n  let hours, minutes;\n  \n  if (timeStr.includes('pm')) {\n    timeStr = timeStr.replace('pm', '');\n    let [h, m] = timeStr.split(':').map(Number);\n    hours = (h === 12 ? 12 : h + 12);\n    minutes = m || 0;\n  } else if (timeStr.includes('am')) {\n    timeStr = timeStr.replace('am', '');\n    let [h, m] = timeStr.split(':').map(Number);\n    hours = (h === 12 ? 0 : h);\n    minutes = m || 0;\n  } else {\n    // Assume 24-hour format or just hours\n    let [h, m] = timeStr.split(':').map(Number);\n    hours = h;\n    minutes = m || 0;\n  }\n  \n  // Format with leading zeros\n  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;\n}\nlet requestedTime =$('Webhook').first().json.body.message.toolCalls[0].function.arguments.time\nrequestedTime = formatTime(requestedTime);\n\nreturn {\n  json:{\n    requestedTime\n  }\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1460,
+        0
+      ],
+      "id": "87431d9d-385c-436e-b914-bfc7ffd00d11",
+      "name": "parseTime"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "name": "First item",
+          "code": 1
+        }
+      },
+      {
+        "json": {
+          "name": "Second item",
+          "code": 2
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "suitableTables": {
+      "main": [
+        [
+          {
+            "node": "parse date",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "suitableTables",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "parse date": {
+      "main": [
+        [
+          {
+            "node": "formattedDate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "formattedDate": {
+      "main": [
+        [
+          {
+            "node": "parseTime",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "parseTime": {
+      "main": [
+        [
+          {
+            "node": "Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7ea47a60-e230-4407-8973-246c852a4256",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "cc73fde382f9f2ef81ad9da71c380b4c5b1c681a6b0399ccbc49cf4b2a743cb7"
+  },
+  "id": "AyqUqaJJ3VRsD2Jb",
+  "tags": [
+    {
+      "createdAt": "2025-02-26T09:17:48.643Z",
+      "updatedAt": "2025-02-26T09:17:48.643Z",
+      "id": "2JZs1TZAuBnwITKy",
+      "name": "restaurant agent"
+    }
+  ]
+}

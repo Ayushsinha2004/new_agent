@@ -1,0 +1,496 @@
+{
+  "name": "Update table",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "authentication": "airtableTokenApi",
+        "baseId": {
+          "__rl": true,
+          "value": "appew9jlYGrM5OYtv",
+          "mode": "id"
+        },
+        "tableId": {
+          "__rl": true,
+          "value": "tblEfvAEJnuRjzKSR",
+          "mode": "id"
+        },
+        "triggerField": "updatedTime",
+        "additionalFields": {
+          "fields": ""
+        }
+      },
+      "type": "n8n-nodes-base.airtableTrigger",
+      "typeVersion": 1,
+      "position": [
+        -360,
+        140
+      ],
+      "id": "fccbec4e-0112-4abc-ac5d-9e79e894b30b",
+      "name": "Airtable Trigger",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "VJP4Pk80GRJLAQCT",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9db895c8-c5a4-4d3d-9ade-b57d06af7d14",
+              "name": "startTime",
+              "value": "={{ $json.fields.Time }}",
+              "type": "string"
+            },
+            {
+              "id": "161dbc05-afae-40fe-a111-1241e453f560",
+              "name": "tableId",
+              "value": "={{ $json.fields['Table ID'] }}",
+              "type": "string"
+            },
+            {
+              "id": "1161c6b8-a588-495a-bc8d-f2b27f5cf0f0",
+              "name": "date",
+              "value": "={{ $json.fields.Date }}",
+              "type": "string"
+            },
+            {
+              "id": "dd7c2494-a16f-4978-941e-34035e25831d",
+              "name": "resId",
+              "value": "={{ $json.fields[\"Res ID\"] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -140,
+        140
+      ],
+      "id": "1b6644b1-5754-4592-98ce-a4e4e433a39b",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "const reservation = $input.first().json;\nconst startTime = reservation.startTime;  \nconst tableId = reservation.tableId;\nconst date = reservation.date;\nconst resId = reservation.resId\n\n// Generate the 4 time slots that need to be updated\nfunction getNextSlot(time) {\n    const [hours, minutes] = time.split(':').map(Number);\n    const date = new Date();\n    date.setHours(hours, minutes + 30);\n    return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;\n}\n\nlet timesToUpdate = [startTime];\nlet currentTime = startTime;\nfor(let i = 0; i < 3; i++) {\n    currentTime = getNextSlot(currentTime);\n    timesToUpdate.push(currentTime);\n}\n\n// Format records for Airtable update\nlet records = timesToUpdate.map(timeSlot => ({\n        \"Date\": date,\n        \"Time Slot\": timeSlot,\n        \"Table ID\": tableId,\n        \"Status\": \"Unavailable\",\n         \"Reservation ID\": resId  \n}));\n\n\n\n\nreturn records\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        140
+      ],
+      "id": "c4d4cdd0-84b8-4ce6-8420-29bd1958e07a",
+      "name": "generateRecords"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        320,
+        140
+      ],
+      "id": "ee997336-ce74-4c61-88e3-ae7f38454597",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "base": {
+          "__rl": true,
+          "value": "appew9jlYGrM5OYtv",
+          "mode": "list",
+          "cachedResultName": "Restaurant_Management",
+          "cachedResultUrl": "https://airtable.com/appew9jlYGrM5OYtv"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblAxvB06ZIIZMnUA",
+          "mode": "list",
+          "cachedResultName": "Table_Availability",
+          "cachedResultUrl": "https://airtable.com/appew9jlYGrM5OYtv/tblAxvB06ZIIZMnUA"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $json.Date }}",
+            "Table ID": "={{ $json['Table ID'] }}",
+            "Time Slot": "={{ $json['Time Slot'] }}",
+            "Status": "={{ $json.Status }}",
+            "Reservation ID": "={{ $json['Reservation ID'] }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Table ID",
+              "displayName": "Table ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "T1",
+                  "value": "T1"
+                },
+                {
+                  "name": "T3",
+                  "value": "T3"
+                },
+                {
+                  "name": "T5",
+                  "value": "T5"
+                },
+                {
+                  "name": "T2",
+                  "value": "T2"
+                },
+                {
+                  "name": "T4",
+                  "value": "T4"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Time Slot",
+              "displayName": "Time Slot",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "11:00",
+                  "value": "11:00"
+                },
+                {
+                  "name": "11:30",
+                  "value": "11:30"
+                },
+                {
+                  "name": "12:00",
+                  "value": "12:00"
+                },
+                {
+                  "name": "12:30",
+                  "value": "12:30"
+                },
+                {
+                  "name": "13:00",
+                  "value": "13:00"
+                },
+                {
+                  "name": "13:30",
+                  "value": "13:30"
+                },
+                {
+                  "name": "14:00",
+                  "value": "14:00"
+                },
+                {
+                  "name": "14:30",
+                  "value": "14:30"
+                },
+                {
+                  "name": "19:00",
+                  "value": "19:00"
+                },
+                {
+                  "name": "19:30",
+                  "value": "19:30"
+                },
+                {
+                  "name": "20:00",
+                  "value": "20:00"
+                },
+                {
+                  "name": "20:30",
+                  "value": "20:30"
+                },
+                {
+                  "name": "18:30",
+                  "value": "18:30"
+                },
+                {
+                  "name": "21:00",
+                  "value": "21:00"
+                },
+                {
+                  "name": "18:00",
+                  "value": "18:00"
+                },
+                {
+                  "name": "21:30",
+                  "value": "21:30"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Unavailable",
+                  "value": "Unavailable"
+                },
+                {
+                  "name": "Available",
+                  "value": "Available"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Reservation ID",
+              "displayName": "Reservation ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "reservation",
+              "displayName": "reservation",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "table",
+              "displayName": "table",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Table ID (from table)",
+              "displayName": "Table ID (from table)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Date (from reservation)",
+              "displayName": "Date (from reservation)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Time (from reservation)",
+              "displayName": "Time (from reservation)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Guests (from reservation)",
+              "displayName": "Guests (from reservation)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Reservations",
+              "displayName": "Reservations",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Tables",
+              "displayName": "Tables",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        560,
+        160
+      ],
+      "id": "83ac3c27-7a6a-47ad-825b-37d26cdccfe1",
+      "name": "Airtable1",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "VJP4Pk80GRJLAQCT",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Airtable Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "generateRecords",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "generateRecords": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Airtable1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f4e9d381-570e-480a-a643-2ed8e0c9ca29",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "cc73fde382f9f2ef81ad9da71c380b4c5b1c681a6b0399ccbc49cf4b2a743cb7"
+  },
+  "id": "uAxTPE3CPKCOprZs",
+  "tags": [
+    {
+      "createdAt": "2025-02-26T09:17:48.643Z",
+      "updatedAt": "2025-02-26T09:17:48.643Z",
+      "id": "2JZs1TZAuBnwITKy",
+      "name": "restaurant agent"
+    },
+    {
+      "createdAt": "2025-02-26T09:36:53.009Z",
+      "updatedAt": "2025-02-26T09:36:53.009Z",
+      "id": "3BEoUihyAzJ3cKsJ",
+      "name": "airtable"
+    }
+  ]
+}

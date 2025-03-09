@@ -1,0 +1,390 @@
+{
+  "name": "checkTableAvailability",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "62d320bb-788e-4dd8-bae7-0316c9adee65",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -3040,
+        500
+      ],
+      "id": "bf365e06-b234-4684-beb1-28cf32edceb5",
+      "name": "Webhook",
+      "webhookId": "62d320bb-788e-4dd8-bae7-0316c9adee65"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f67ad9b5-e57a-48ee-ae88-8a5943926f57",
+              "leftValue": "={{ $json.body.message.type }}",
+              "rightValue": "tool-calls",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2860,
+        500
+      ],
+      "id": "394bb706-7574-4038-9833-d7d7bfd2c0a8",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1f579f6c-447f-4a04-81c7-0e652ceec49d",
+              "name": "guests",
+              "value": "={{ $('Webhook').item.json.body.message.toolCalls[0].function.arguments.guests }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2100,
+        480
+      ],
+      "id": "4ca6dbcd-5d5b-464b-bb7d-1986192c9274",
+      "name": "guests"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appew9jlYGrM5OYtv",
+          "mode": "list",
+          "cachedResultName": "Restaurant_Management",
+          "cachedResultUrl": "https://airtable.com/appew9jlYGrM5OYtv"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblAxvB06ZIIZMnUA",
+          "mode": "list",
+          "cachedResultName": "Table_Availability",
+          "cachedResultUrl": "https://airtable.com/appew9jlYGrM5OYtv/tblAxvB06ZIIZMnUA"
+        },
+        "filterByFormula": "=AND(\n{Status} = 'Available',\n{Date} = '{{ $('parse date').first().json.message.content.date }}',\nOR({{ $json.tableFilter }})\n)",
+        "returnAll": false,
+        "options": {},
+        "sort": {
+          "property": [
+            {
+              "field": "Time Slot"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -1660,
+        480
+      ],
+      "id": "5fac1e8f-046e-4bb4-82d2-8d2258d891f2",
+      "name": "Available slots",
+      "notesInFlow": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "VJP4Pk80GRJLAQCT",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const guests = $input.first().json.guests\n\n// Get suitable tables based on party size\nfunction getSuitableTables(guests) {\n    if (guests <= 2) return ['T1', 'T2'];\n    if (guests <= 4) return ['T3', 'T4'];\n    if (guests <= 6) return ['T5'];\n    return [];\n}\n\nconst suitableTables = getSuitableTables(guests);\nconst tableFilter = `OR(${suitableTables.map(table => `{Table ID} = '${table}'`).join(', ')})`;\n\n\n\n\nreturn {json: {\n  suitableTables,\n  tableFilter\n}};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1880,
+        480
+      ],
+      "id": "137a9a89-6b70-4dcf-8e2d-fab9d50dee99",
+      "name": "suitableTables",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const requestedTime = $('parseTime').first().json.requestedTime;\nconst availableSlots = $('Available slots').all().map(item => item.json);\nconst LUNCH_END = \"13:30\";\nconst DINNER_END = \"21:00\";\nconst isLunchPeriod = requestedTime <= LUNCH_END;\n\nfunction getNextSlot(time) {\n    const [hours, minutes] = time.split(':').map(Number);\n    const date = new Date();\n    date.setHours(hours, minutes + 30, 0, 0); // Add 30 minutes\n    const nextHours = String(date.getHours()).padStart(2, '0');\n    const nextMinutes = String(date.getMinutes()).padStart(2, '0');\n    return `${nextHours}:${nextMinutes}`;\n}\n\n// For debugging\nconsole.log('Initial available slots:', availableSlots);\n\n// Filter slots by period first\nconst periodSlots = availableSlots.filter(slot => {\n    if (isLunchPeriod) {\n        return slot['Time Slot'] <= LUNCH_END;\n    } else {\n        return slot['Time Slot'] > LUNCH_END && slot['Time Slot'] <= DINNER_END;\n    }\n});\n\nconsole.log('Period slots:', periodSlots);\n\n// Generate potential starting times within the period\nconst potentialTimes = [...new Set(periodSlots.map(slot => slot['Time Slot']))].sort();\n\nconsole.log('Potential times:', potentialTimes);\n\n// Adjust validTimes to include times where there are no explicit unavailabilities in the next 4 slots\nconst validTimes = potentialTimes.filter(time => {\n    // Generate required slots starting from 'time'\n    let requiredSlots = [time];\n    let nextSlot = time;\n    const endTime = isLunchPeriod ? LUNCH_END : DINNER_END;\n\n    for (let i = 0; i < 3; i++) { // Need up to 3 more slots\n        nextSlot = getNextSlot(nextSlot);\n        if (nextSlot > endTime) {\n            // Reached end of period; slots beyond endTime don't exist, so we consider them acceptable\n            break;\n        }\n        requiredSlots.push(nextSlot);\n    }\n\n    // Now check if there is any explicit unavailability for these slots for any table\n    // We assume that a slot is unavailable if it exists in the data and the table is not available\n    // If the slot does not exist, we consider it acceptable (e.g., beyond closing time)\n\n    // Get tables available at the initial time\n    const tablesAtTime = periodSlots\n        .filter(slot => slot['Time Slot'] === time)\n        .map(slot => slot['Table ID']);\n    if (tablesAtTime.length === 0) {\n        // No tables available at the initial time\n        return false;\n    }\n\n    // Check for each table if there's any explicit unavailability in the required slots\n    for (const tableId of tablesAtTime) {\n        let isTableValid = true;\n        for (const timeSlot of requiredSlots) {\n            if (timeSlot <= endTime) {\n                // Check if the slot exists in periodSlots for this table\n                const slotExists = periodSlots.some(slot =>\n                    slot['Time Slot'] === timeSlot &&\n                    slot['Table ID'] === tableId\n                );\n                if (!slotExists) {\n                    // Slot is explicitly unavailable (since it exists in the period but not for this table)\n                    isTableValid = false;\n                    break;\n                }\n                // Slot exists and is available\n            }\n        }\n        if (isTableValid) {\n            // Found a table with no explicit unavailability\n            return true;\n        }\n    }\n    // No table is valid for the required slots\n    return false;\n});\n\nconsole.log('Valid times with available slots:', validTimes);\n\n// **Check if requestedTime is within valid times**\nif (!validTimes.includes(requestedTime)) {\n    console.log(`Requested time ${requestedTime} is not within valid times.`);\n    return {json: {\n        available: false,\n        requestedTime,\n        alternativeTimes:validTimes,\n        message: 'Requested time is not available',\n        period: isLunchPeriod ? 'lunch' : 'dinner'\n    }};\n}\n\n// Get initial tables available at the requested time within the period\nconst initialTables = periodSlots\n    .filter(slot => slot['Time Slot'] === requestedTime)\n    .map(slot => slot['Table ID']);\n\nconsole.log('Initial tables at requested time:', initialTables);\n\n// Generate required slots starting from requestedTime\nlet requiredSlots = [requestedTime];\nlet nextSlot = requestedTime;\nconst endTime = isLunchPeriod ? LUNCH_END : DINNER_END;\n\nfor (let i = 0; i < 3; i++) { // Need up to 3 more slots\n    nextSlot = getNextSlot(nextSlot);\n    if (nextSlot > endTime) {\n        // Reached end of period\n        break;\n    }\n    requiredSlots.push(nextSlot);\n}\n\nconsole.log('Required slots:', requiredSlots);\n\n// Check table availability for required slots\nconst availableTablesWithSlots = initialTables.filter(tableId => {\n    for (const timeSlot of requiredSlots) {\n        if (timeSlot <= endTime) {\n            const slotExists = periodSlots.some(slot =>\n                slot['Time Slot'] === timeSlot &&\n                slot['Table ID'] === tableId\n            );\n            if (!slotExists) {\n                // Slot is explicitly unavailable\n                return false;\n            }\n            // Slot exists and is available\n        }\n    }\n    return true; // Table is available for all required slots\n});\n\nconsole.log('Available tables with required slots:', availableTablesWithSlots);\n\nconst hasAvailableSlots = availableTablesWithSlots.length > 0;\n\nreturn {json: {\n    available: hasAvailableSlots,\n    requestedTime,\n    requiredSlots,\n    initialTables,\n    availableTablesWithSlots,\n    alternativeTimes:validTimes,\n    isEndOfDay: requiredSlots.some(slot => slot > endTime),\n    period: isLunchPeriod ? 'lunch' : 'dinner'\n}};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1460,
+        480
+      ],
+      "id": "b743dee9-0eb6-4ec5-9b72-5b621ca8b5b7",
+      "name": "availabilityOnRequestedTime"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "459d5385-30cb-4a9e-a55b-6b8ffbc7a1cf",
+              "leftValue": "={{ $json.available }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1300,
+        480
+      ],
+      "id": "80ad349a-ff6e-4c0c-8212-7d99da1a94e0",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a date parsing assistant. Today's date is {{$today}}. Your task is to convert natural language date expressions into YYYY-MM-DD format.\nRules:\n\nAlways output only the date in YYYY-MM-DD format\nIf the year isn't specified, assume the nearest future date\nFor \"next [day]\", select the next occurrence after the upcoming one\nFor relative dates (tomorrow, day after tomorrow), calculate from today's date\nFor numeric dates (e.g., \"15th\"), assume the nearest future occurrence\nFor month names, use the next occurrence if the day has passed\n\nInput examples and expected outputs (assuming today is {{$today}}):\n\n\"tomorrow\" → [calculate tomorrow's date]\n\"next monday\" → [calculate second monday from today]\n\"this friday\" → [calculate next friday]\n\"day after tomorrow\" → [calculate date after tomorrow]\n\"in 3 days\" → [calculate date 3 days from today]\n\"next week tuesday\" → [calculate next tuesday]\n\"december 25th\" → [calculate next December 25th]\n\"25/12\" → [calculate next December 25th]\n\"25th of next month\" → [calculate 25th of next month]\n\"first tuesday of next month\" → [calculate accordingly]\n\"end of this month\" → [calculate last day of current month]\n\"2024-12-25\" → 2024-12-25\n\nOnly respond with the date in YYYY-MM-DD format. No explanations or additional text.\nInput: {{ $json.body.message.toolCalls[0].function.arguments.date }}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {
+          "temperature": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.7,
+      "position": [
+        -2700,
+        480
+      ],
+      "id": "a8fde551-55c3-4cba-8bd4-f627f1c5a7fe",
+      "name": "parse date",
+      "credentials": {
+        "openAiApi": {
+          "id": "6ujOoKflHHw1YrDR",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nfunction formatTime(timeStr) {\n  // Remove any spaces\n  timeStr = timeStr.toLowerCase().replace(/\\s/g, '');\n  \n  // Handle cases like \"7:30pm\", \"7pm\", \"19:30\", \"7\", \"7:30\"\n  let hours, minutes;\n  \n  if (timeStr.includes('pm')) {\n    timeStr = timeStr.replace('pm', '');\n    let [h, m] = timeStr.split(':').map(Number);\n    hours = (h === 12 ? 12 : h + 12);\n    minutes = m || 0;\n  } else if (timeStr.includes('am')) {\n    timeStr = timeStr.replace('am', '');\n    let [h, m] = timeStr.split(':').map(Number);\n    hours = (h === 12 ? 0 : h);\n    minutes = m || 0;\n  } else {\n    // Assume 24-hour format or just hours\n    let [h, m] = timeStr.split(':').map(Number);\n    hours = h;\n    minutes = m || 0;\n  }\n  \n  // Format with leading zeros\n  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;\n}\nlet requestedTime =$('Webhook').first().json.body.message.toolCalls[0].function.arguments.time\nrequestedTime = formatTime(requestedTime);\n\nreturn {\n  json:{\n    requestedTime\n  }\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2320,
+        480
+      ],
+      "id": "c80b4b5f-a2a7-4d5e-9a26-866eed951e30",
+      "name": "parseTime"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n    \"results\":[\n        {\n            \"toolCallId\":\"{{ $('Webhook').first().json.body.message.toolCalls[0].id }}\",\n            \"result\":\"available:{{ $json.available }}\"\n        }\n    ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -1080,
+        380
+      ],
+      "id": "dc17ba74-5f47-46a8-92f7-2a180294bbbf",
+      "name": "Respond time is available"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n    \"results\":[\n        {\n            \"toolCallId\":\"{{ $('Webhook').first().json.body.message.toolCalls[0].id }}\",\n            \"result\":\"alertnativeTimes:{{ $json.alternativeTimes }}\"\n        }\n    ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -1080,
+        560
+      ],
+      "id": "d31d9a4a-86d1-4f3e-854c-a30ae0cb2cd6",
+      "name": "Respond alternative times"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "parse date",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "guests": {
+      "main": [
+        [
+          {
+            "node": "suitableTables",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Available slots": {
+      "main": [
+        [
+          {
+            "node": "availabilityOnRequestedTime",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "suitableTables": {
+      "main": [
+        [
+          {
+            "node": "Available slots",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "availabilityOnRequestedTime": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Respond time is available",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond alternative times",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "parse date": {
+      "main": [
+        [
+          {
+            "node": "parseTime",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "parseTime": {
+      "main": [
+        [
+          {
+            "node": "guests",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "8d0029e9-1f31-43fa-b5c1-3c30d5ad4bae",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "cc73fde382f9f2ef81ad9da71c380b4c5b1c681a6b0399ccbc49cf4b2a743cb7"
+  },
+  "id": "apNplRgVGnDaaPj9",
+  "tags": [
+    {
+      "createdAt": "2025-02-26T09:17:48.643Z",
+      "updatedAt": "2025-02-26T09:17:48.643Z",
+      "id": "2JZs1TZAuBnwITKy",
+      "name": "restaurant agent"
+    }
+  ]
+}
